@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(STUDENT)
+
+  results   Result[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Stage {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+
+  grades    Grade[]
+}
+
+model Grade {
+  id        Int       @id @default(autoincrement())
+  name      String
+
+  stageId   Int
+  stage     Stage     @relation(fields: [stageId], references: [id])
+
+  subjects  Subject[]
+}
+
+model Subject {
+  id        Int       @id @default(autoincrement())
+  name      String
+
+  gradeId   Int
+  grade     Grade     @relation(fields: [gradeId], references: [id])
+
+  exams     Exam[]
+}
+
+model Exam {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  duration    Int
+  totalMarks  Int
+
+  subjectId   Int
+  subject     Subject    @relation(fields: [subjectId], references: [id])
+
+  questions   Question[]
+  results      Result[]
+
+  createdAt   DateTime   @default(now())
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  question      String
+
+  answer1       String
+  answer2       String
+  answer3       String
+  answer4       String
+
+  correctAnswer Int
+
+  marks         Int       @default(1)
+
+  examId        Int
+  exam          Exam      @relation(fields: [examId], references: [id])
+}
+
+model Result {
+  id         Int      @id @default(autoincrement())
+
+  score      Int
+  totalMarks Int
+
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  examId      Int
+  exam        Exam     @relation(fields: [examId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
